@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpass
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build: ./api
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://taskuser:taskpass@db:5432/taskdb
+    depends_on:
+      - db
+    volumes:
+      - ./api:/app
+
+  client:
+    build: ./client
+    depends_on:
+      - api
+    volumes:
+      - ./client:/app
+
+volumes:
+  postgres_data:
